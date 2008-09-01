@@ -1,0 +1,6 @@
+<Dump of JPEG test/data/noexif.jpg>
+ Section: [ APP0] Size:     14
+ Section: [  DQT] Size:    130
+ Section: [ SOF0] Size:     15
+ Section: [  DHT] Size:    416
+ Scan Section:    Size:     10 Image data size: 135204

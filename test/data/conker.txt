@@ -1,0 +1,90 @@
+<Dump of JPEG test/data/conker.jpg>
+ Section: [ APP0] Size:     14
+<--- TIFF Ifd start --->
+  Camera Make                              FUJIFILM
+  Camera Model                             FinePix S7000 
+  Orientation of image                     1
+  X Resolution                             72 / 1
+  Y Resolution                             72 / 1
+  Unit of X and Y resolution               2
+  Camera Software                          Digital Camera FinePix S7000 Ver1.00
+  File change data and time                2004:09:26 16:40:26
+  Y and C positioning                      2
+  Copyright holder                             
+  Artist                                   Nick Carter
+    <--- Extended EXIF start --->
+      Exposure Time                            10 / 3000
+      F Number                                 500 / 100
+      Exposure Program                         2
+      ISO Speed Rating                         160
+      Exif Version                             ['0', '2', '2', '0']
+      Date of original data generation         2004:09:26 16:40:26
+      Date of digital data generation          2004:09:26 16:40:26
+      Meaning of each component                ['\x01', '\x02', '\x03', '\x00']
+      Image compression mode                   16 / 10
+      Shutter speed                            820 / 100
+      Aperture                                 460 / 100
+      Brightness                               717 / 100
+      Exposure bias                            0 / 100
+      Maximum lens apeture                     300 / 100
+      Metering mode                            5
+      Light mode                               0
+      Flash                                    16
+      Lens focal length                        1800 / 100
+        <--- FujiFilm start --->
+          Note version                             ['0', '1', '3', '0']
+          Quality                                  °¼Cá{=O
+          Sharpness                                3
+          White balance                            0
+          Color                                    0
+          Flash mode                               2
+          Flash strength                           -1205113497 / 593702593
+          Macro                                    1
+          Focus mode                               0
+          0x1022                                   1
+          0x1023                                   [2024, 1520]
+          Slow sync                                0
+          Picture mode                             0
+          0x1032                                   1
+          Motor or bracket                         0
+          Sequence number                          0
+          0x1200                                   0
+          FinePix Color                            0
+          Blur warning                             0
+          Focus warning                            0
+          AE warning                               0
+        <--- FujiFilm end --->
+      Supported Flashpix version               ['0', '1', '0', '0']
+      Color Space Information                  1
+      Valid image width                        4048
+      Valid image height                       3040
+      0xa005                                   3258
+      Focal plane X resolution                 5263 / 1
+      Focal plane Y resolution                 5263 / 1
+      Focal plane resolution unit              3
+      Sensing method                           2
+      File source                              
+      Scene type                               
+      Customer image processing                0
+      Exposure mode                            0
+      White balance                            0
+      Scene capture type                       0
+      Sharpness                                0
+      Subject distance range                   1
+      User comments                            ['A', 'S', 'C', 'I', 'I', '\x00', '\x00', '\x00', 'C', 'o', 'n', 'k', 'e', 'r', '\x00']
+    <--- Extended EXIF end --->
+<--- TIFF Ifd end --->
+<--- Thumbnail start --->
+  Image width                              80
+  Image height                             60
+  Compression Scheme                       6
+  Orientation of image                     1
+  Offset to JPEG SOI                       1229
+  Bytes of JPEG data                       2106
+<--- Thumbnail end --->
+ Section: [  DQT] Size:     65
+ Section: [  DQT] Size:     65
+ Section: [ SOF2] Size:     15
+ Section: [  DHT] Size:     23
+ Section: [  DHT] Size:     22
+ Scan Section:    Size:     10 Image data size:   1595

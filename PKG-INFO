@@ -1,0 +1,17 @@
+Metadata-Version: 1.0
+Name: pexif
+Version: 0.11
+Summary: A module for editing JPEG EXIF data
+Home-page: http://www.benno.id.au/code/pexif/
+Author: Ben Leslie
+Author-email: benno@benno.id.au
+License: http://www.opensource.org/licenses/mit-license.php
+Download-URL: http://www.benno.id.au/code/pexif/pexif-0.11.tar.gz
+Description: This module allows you to parse and edit the EXIF data tags in a JPEG image.
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Topic :: Multimedia :: Graphics

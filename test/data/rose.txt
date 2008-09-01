@@ -1,0 +1,74 @@
+<Dump of JPEG test/data/rose.jpg>
+ Section: [ APP0] Size:     14
+<--- TIFF Ifd start --->
+  Camera Make                              Canon
+  Camera Model                             Canon DIGITAL IXUS II
+  Orientation of image                     1
+  X Resolution                             180 / 1
+  Y Resolution                             180 / 1
+  Unit of X and Y resolution               2
+  File change data and time                2006:01:14 15:35:54
+  Y and C positioning                      1
+    <--- Extended EXIF start --->
+      Exposure Time                            1 / 500
+      F Number                                 80 / 10
+      Exif Version                             ['0', '2', '2', '0']
+      Date of original data generation         2006:01:14 15:35:54
+      Date of digital data generation          2006:01:14 15:35:54
+      Meaning of each component                ['\x01', '\x02', '\x03', '\x00']
+      Image compression mode                   3 / 1
+      Shutter speed                            287 / 32
+      Aperture                                 192 / 32
+      Exposure bias                            -3 / 3
+      Maximum lens apeture                     107 / 32
+      Metering mode                            2
+      Flash                                    16
+      Lens focal length                        215 / 32
+        <--- Canon start --->
+          0x1                                      [92, 1, 0, 3, 0, 0, 0, 4, 0, 1, 0, 1, 0, 0, 0, 0, 19, 5, 3, 16385, 0, 0, 65535, 346, 173, 32, 106, 190, 0, 0, 0, 0, 0, 1, 65535, 0, 2048, 2048, 0, 0, 2, 0, 32767, 0, 0, 0]
+          0x2                                      [2, 215, 213, 159]
+          0x3                                      [1024, 0, 0, 0]
+          0x4                                      [68, 0, 224, 221, 192, 287, 65504, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 27, 0, 190, 288, 0, 0, 0, 250, 0, 0, 0, 0, 0, 0, 13]
+          0x0                                      [0, 0, 0, 0, 0, 0]
+          0x0                                      [0, 0, 0, 0]
+          0x12                                     [9, 9, 2048, 1536, 2048, 256, 369, 42, 65166, 0, 370, 65166, 0, 370, 65166, 0, 370, 65488, 65488, 65488, 0, 0, 0, 48, 48, 48, 0, 0]
+          0x13                                     [0, 0, 0, 0]
+          Image Type                               IMG:DIGITAL IXUS II JPEG
+          Firmware Revision                        Firmware Version 2.01
+          Image Number                             1080836
+          Owner Name                               
+          0x10                                     19070976
+          0xd                                      [68, 9, 505, 502, 505, 505, 505, 503, 505, 499, 505, 64, 0, 0, 95, 1, 0, 10, 0, 0, 0, 23, 264, 1, 0, 1010, 1001, 0, 0, 0, 0, 146, 0, 65440]
+        <--- Canon end --->
+      User comments                            ['\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00']
+      Supported Flashpix version               ['0', '1', '0', '0']
+      Color Space Information                  1
+      Valid image width                        2048
+      Valid image height                       1536
+      0xa005                                   6186
+      Focal plane X resolution                 2048000 / 208
+      Focal plane Y resolution                 1536000 / 156
+      Focal plane resolution unit              2
+      Sensing method                           2
+      File source                              
+      Customer image processing                0
+      Exposure mode                            1
+      White balance                            1
+      Digital zoom ratio                       2048 / 2048
+      Scene capture type                       0
+    <--- Extended EXIF end --->
+<--- TIFF Ifd end --->
+<--- Thumbnail start --->
+  Image width                              200
+  Image height                             150
+  Compression Scheme                       6
+  Orientation of image                     1
+  Offset to JPEG SOI                       1624
+  Bytes of JPEG data                       4811
+<--- Thumbnail end --->
+ Section: [  DQT] Size:     65
+ Section: [  DQT] Size:     65
+ Section: [ SOF2] Size:     15
+ Section: [  DHT] Size:     24
+ Section: [  DHT] Size:     22
+ Scan Section:    Size:     10 Image data size:   4023
