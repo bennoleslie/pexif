@@ -219,6 +219,8 @@ class IfdData:
 
     def __setitem__(self, key, value):
         found = 0
+        if len(self.tags[key]) < 3:
+            raise "Error: Tags aren't set up correctly, should have tag type."
         if self.tags[key][2] == ASCII:
             if not value is None and not value.endswith('\0'):
                 value = value + '\0'
@@ -518,8 +520,8 @@ class IfdExtendedEXIF(IfdData):
         # E. Tag relating to related file information
         0xA004: ("Related audio file", "RelatedSoundFile"),
         # F. Tags relating to date and time
-        0x9003: ("Date of original data generation", "DateTimeOriginal"),
-        0x9004: ("Date of digital data generation", "DateTimeDigitized"),
+        0x9003: ("Date of original data generation", "DateTimeOriginal", ASCII),
+        0x9004: ("Date of digital data generation", "DateTimeDigitized", ASCII),
         0x9290: ("DateTime subseconds", "SubSecTime"),
         0x9291: ("DateTime original subseconds", "SubSecTimeOriginal"),
         0x9292: ("DateTime digitized subseconds", "SubSecTimeDigitized"),
@@ -569,6 +571,8 @@ class IfdExtendedEXIF(IfdData):
         0x927c: IfdMakerNote,
         }
     name = "Extended EXIF"
+
+make_syms2(IfdExtendedEXIF.tags)
 
 class IfdTIFF(IfdData):
     """
