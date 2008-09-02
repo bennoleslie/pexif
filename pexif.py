@@ -27,6 +27,70 @@ jpeg = pexif.JpegFile.fromFile("foo.jpg")
 exif = jpeg.get_exif(create=True)
 ....
 jpeg.writeFile("new.jpg")
+
+The JpegFile class handles file that are formatted in something
+approach the JPEG specification (ISO/IEC 10918-1) Annex B 'Compressed
+Data Formats', and JFIF and EXIF standard.
+
+In particular, the way a 'jpeg' file is treated by pexif is that
+a JPEG file is made of a series of segments followed by the image
+data. In particular it should look something like:
+
+[ SOI | <arbitrary segments> | SOS | image data | EOI ]
+
+So, the library expects a Start-of-Image marker, followed
+by an arbitrary number of segment (assuming that a segment
+has the format:
+
+[ <0xFF> <segment-id> <size-byte0> <size-byte1> <data> ]
+
+and that there are no gaps between segments.
+
+The last segment must be the Start-of-Scan header, and the library
+assumes that following Start-of-Scan comes the image data, finally
+followed by the End-of-Image marker.
+
+This is probably not sufficient to handle arbitrary files conforming
+to the JPEG specs, but it should handle files that conform to
+JFIF or EXIF, as well as files that conform to neither but
+have both JFIF and EXIF application segment (which is the majority
+of files in existence!). 
+
+When writing out files all segment will be written out in the order
+in which they were read. Any 'unknown' segment will be written out
+as is. Note: This may or may not corrupt the data. If the segment
+format relies on absolute references then this library may still
+corrupt that segment!
+
+
+Can have a JpegFile in two modes: Read Only and Read Write.
+
+Read Only mode: trying to access missing elements will result in
+an AttributeError.
+
+Read Write mode: trying to access missing elements will automatically
+create them.
+
+E.g: 
+
+img.exif.primary.<tagname>
+             .geo
+             .interop
+             .exif.<tagname>
+             .exif.makernote.<tagname>
+               
+        .thumbnail
+img.flashpix.<...>
+img.jfif.<tagname>
+img.xmp
+
+E.g: 
+
+try:
+ print img.exif.tiff.exif.FocalLength
+except AttributeError:
+ print "No Focal Length data"
+
 """
 
 import StringIO
@@ -39,7 +103,7 @@ except:
     decimal = None
 
 MAX_HEADER_SIZE = 64 * 1024
-DELIM = 255
+DELIM = 0xff
 EOI = 0xd9
 SOI_MARKER = chr(DELIM) + '\xd8'
 EOI_MARKER = chr(DELIM) + '\xd9'
@@ -123,7 +187,7 @@ class StartOfScanSegment(DefaultSegment):
 
         # For SOS we also pull out the actual data
         img_data = fd.read()
-        # FIXME: Not sure where the -2 comes from, should be documented
+        # -2 accounts for the EOI marker at the end of the file
         self.img_data = img_data[:-2]
         fd.seek(-2, 1)
 
@@ -132,7 +196,7 @@ class StartOfScanSegment(DefaultSegment):
         fd.write(self.img_data)
 
     def dump(self, fd):
-        print >> fd, " Scan Section:    Size: %6d Image data size: %6d" % \
+        print >> fd, " Section: [  SOS] Size: %6d Image data size: %6d" % \
               (len(self.data), len(self.img_data))
 
 def make_syms(dict):
@@ -208,7 +272,21 @@ class IfdData:
     def has_key(self, key):
         return self[key] != None
 
+    def __setattr__(self, name, value):
+        for key, entry in self.tags.items():
+            if entry[1] == name:
+                self[key] = value
+        self.__dict__[name] = value
+
+    def __getattr__(self, name):
+        for key, entry in self.tags.items():
+            if entry[1] == name:
+                return self[key]
+        raise AttributeError
+
     def __getitem__(self, key):
+        if type(key) == type(""):
+            return self.__getattr__(key)
         for entry in self.entries:
             if key == entry[0]:
                 if entry[1] == ASCII and not entry[2] is None:
@@ -218,6 +296,8 @@ class IfdData:
         return None
 
     def __setitem__(self, key, value):
+        if type(key) == type(""):
+            return self.__setattr__(key, value)
         found = 0
         if len(self.tags[key]) < 3:
             raise "Error: Tags aren't set up correctly, should have tag type."
@@ -278,8 +358,12 @@ class IfdData:
                 elif exif_type == ASCII:
                     if the_data[-1] != '\0':
                         actual_data = the_data + '\0'
-                        #raise JpegFile.InvalidFile("ASCII tag '%s' not NULL-terminated: %s [%s]" % (self.tags.get(tag, (hex(tag), 0))[0], the_data, map(ord, the_data)))
-                        #print "ASCII tag '%s' not NULL-terminated: %s [%s]" % (self.tags.get(tag, (hex(tag), 0))[0], the_data, map(ord, the_data))
+                        #raise JpegFile.InvalidFile("ASCII tag '%s' not 
+                        # NULL-terminated: %s [%s]" % (self.tags.get(tag, 
+                        # (hex(tag), 0))[0], the_data, map(ord, the_data)))
+                        #print "ASCII tag '%s' not NULL-terminated: 
+                        # %s [%s]" % (self.tags.get(tag, (hex(tag), 0))[0], 
+                        # the_data, map(ord, the_data))
                     actual_data = the_data
                 elif exif_type == SHORT:
                     actual_data = list(unpack(e + ("H" * components), the_data))
@@ -678,7 +762,6 @@ class ExifSegment(DefaultSegment):
     a get_attributes returns an AttributeIfd instances which allows you to
     manipulate the attributes in a Jpeg file."""
 
-
     def __init__(self, marker, fd, data):
         self.ifds = []
         self.e = '<'
@@ -736,9 +819,11 @@ class ExifSegment(DefaultSegment):
             # Get next offset
             offset = unpack(self.e + "I", tiff_data[start:start+4])[0]
 
-    def dump(self, f):
+    def dump(self, fd):
+        print >> fd, " Section: [ EXIF] Size: %6d" % \
+              (len(self.data))
         for ifd in self.ifds:
-            ifd.dump(f)
+            ifd.dump(fd)
 
     def get_data(self):
         ifds_data = ""
@@ -770,7 +855,6 @@ class ExifSegment(DefaultSegment):
                 return new_ifd
             else:
                 return None
-
 
 jpeg_markers = {
     0xc0: ("SOF0", []),
@@ -811,19 +895,19 @@ class JpegFile:
     writeFile, writeString or writeFd. To get an ASCII dump of the data in a file
     use the dump method."""
     
-    def fromFile(filename):
+    def fromFile(filename, mode="rw"):
         """Return a new JpegFile object from a given filename."""
-        return JpegFile(open(filename, "rb"), filename=filename)
+        return JpegFile(open(filename, "rb"), filename=filename, mode=mode)
     fromFile = staticmethod(fromFile)
 
-    def fromString(str):
+    def fromString(str, mode="rw"):
         """Return a new JpegFile object taking data from a string."""
-        return JpegFile(StringIO.StringIO(str), "from buffer")
+        return JpegFile(StringIO.StringIO(str), "from buffer", mode=mode)
     fromString = staticmethod(fromString)
 
-    def fromFd(fd):
+    def fromFd(fd, mode="rw"):
         """Return a new JpegFile object taking data from a file object."""
-        return JpegFile(fd, "fd <%d>" % fd.fileno())
+        return JpegFile(fd, "fd <%d>" % fd.fileno(), mode=mode)
     fromFd = staticmethod(fromFd)
 
     class InvalidFile(Exception):
@@ -834,13 +918,13 @@ class JpegFile:
         """This exception is raised if a section is unable to be found."""
         pass
     
-    def __init__(self, input, filename=None):
+    def __init__(self, input, filename=None, mode="rw"):
         """JpegFile Constructor. input is a file object, and filename is a string
         used to name the file. (filename is used only for display functions).
         You shouldn't use this function directly, but rather call one of the
         static methods fromFile, fromString or fromFd."""
         self.filename = filename
-        
+        self.mode = mode
         # input is the file descriptor
         soi_marker = input.read(len(SOI_MARKER))
 
@@ -854,19 +938,24 @@ class JpegFile:
         while 1:
             head = input.read(2)
             delim, mark  =  unpack(">BB", head)
-            if (delim != 255):
+            if (delim != DELIM):
                 raise self.InvalidFile("Error, expecting delmiter. "\
                                        "Got <%s> should be <%s>" %
                                        (delim, DELIM))
             if mark == EOI:
+                # Hit end of image marker, game-over!
                 break
             head2 = input.read(2)
             size = unpack(">H", head2)[0]
             data = input.read(size-2)
-            possible = jpeg_markers[mark][1] + [DefaultSegment]
-            for each in possible:
+            possible_segment_classes = jpeg_markers[mark][1] + [DefaultSegment]
+            # Try and find a valid segment class to handle
+            # this data
+            for segment_class in possible_segment_classes:
                 try:
-                    attempt = each(mark, input, data)
+                    # Note: Segment class may modify the input file 
+                    # descriptor. This is expected.
+                    attempt = segment_class(mark, input, data)
                     segments.append(attempt)
                     break
                 except DefaultSegment.InvalidSegment:
@@ -907,7 +996,7 @@ class JpegFile:
         false, then return None. If create is true, a new exif segment is
         added to the file and returned."""
         for segment in self._segments:
-            if segment.marker == APP1:
+            if segment.__class__ == ExifSegment:
                 return segment
         if create:
             return self.add_exif()
@@ -915,14 +1004,24 @@ class JpegFile:
             return None
 
     def add_exif(self):
-        """add_exif adds a new ExifSegment to a file, and returns it."""
+        """add_exif adds a new ExifSegment to a file, and returns it. When adding an
+        EXIF segment is will add it at the start of the list of segments."""
         new_segment = ExifSegment(APP1, None, None)
-        # FIXME: This is a little bit dodgy really.
-        # Need to have a more intelligent way of adding this
-        # segment.
         self._segments.insert(0, new_segment)
         return new_segment
 
+
+    def _get_exif(self):
+        """Get exif"""
+        if self.mode == "rw":
+            return self.get_exif(True)
+        else:
+            exif = self.get_exif(False)
+            if exif is None:
+                raise AttributeError
+            return exif
+
+    exif = property(_get_exif)
 
     def get_geo(self):
         """Return a tuple of (latitude, longitude)."""
@@ -940,7 +1039,8 @@ class JpegFile:
             lat = -lat
         
         (deg, min, sec) =  gps[GPSLongitude]
-        lng = (float(deg.num) / deg.den) + (1/60.0 * float(min.num) / min.den) + \
+        lng = (float(deg.num) / deg.den) + (1/60.0 *  \
+                                            float(min.num) / min.den) + \
               (1/3600.0 * float(sec.num) / sec.den)
         if gps[GPSLongitudeRef] == "W":
             lng = -lng

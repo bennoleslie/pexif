@@ -199,5 +199,17 @@ class TestExifFunctions(unittest.TestCase):
         jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE)
         self.assertRaises(pexif.JpegFile.NoSection, jf.get_geo)
 
+    def test_exif_property(self):
+        def test_get():
+            foo = jf.exif
+
+        jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE, mode="ro")
+        self.assertEqual(jf.exif.__class__, pexif.ExifSegment)
+
+        # exif doesn't exist
+        jf = pexif.JpegFile.fromFile(NONEXIST_TESTFILE, mode="ro")
+        self.assertRaises(AttributeError, test_get)
+        
+
 if __name__ == "__main__":
     unittest.main()
