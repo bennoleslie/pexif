@@ -1,5 +1,6 @@
 <Dump of JPEG test/data/conker.jpg>
  Section: [ APP0] Size:     14
+ Section: [ EXIF] Size:   3341
 <--- TIFF Ifd start --->
   Camera Make                              FUJIFILM
   Camera Model                             FinePix S7000 
@@ -87,4 +88,4 @@
  Section: [ SOF2] Size:     15
  Section: [  DHT] Size:     23
  Section: [  DHT] Size:     22
- Scan Section:    Size:     10 Image data size:   1595
+ Section: [  SOS] Size:     10 Image data size:   1595

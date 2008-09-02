@@ -1,5 +1,6 @@
 <Dump of JPEG test/data/rose.jpg>
  Section: [ APP0] Size:     14
+ Section: [ EXIF] Size:   6441
 <--- TIFF Ifd start --->
   Camera Make                              Canon
   Camera Model                             Canon DIGITAL IXUS II
@@ -71,4 +72,4 @@
  Section: [ SOF2] Size:     15
  Section: [  DHT] Size:     24
  Section: [  DHT] Size:     22
- Scan Section:    Size:     10 Image data size:   4023
+ Section: [  SOS] Size:     10 Image data size:   4023
