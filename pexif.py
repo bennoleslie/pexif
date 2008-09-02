@@ -99,7 +99,7 @@ from struct import unpack, pack
 
 try:
     import decimal
-except:
+except Import:
     decimal = None
 
 MAX_HEADER_SIZE = 64 * 1024
@@ -225,21 +225,39 @@ def make_syms2(dict):
     for key, value in dict.items():
         globals()[value[1]] = key
 
-exif_types = {
-    1: ("byte", 1),
-    2: ("ascii", 1), 
-    3: ("short", 2),
-    4: ("long", 4),
-    5: ("rational", 8),
-    7: ("undefined", 1),
-    9: ("slong", 4),
-    10: ("srational", 8)
-    }
-make_syms(exif_types)
+class ExifType:
+    lookup = {}
+
+    def __init__(self, id, name, size):
+        self.id = id
+        self.name = name
+        self.size = size
+        ExifType.lookup[id] = self
+
+BYTE = ExifType(1, "byte", 1).id
+ASCII = ExifType(2, "ascii", 1).id
+SHORT = ExifType(3, "short", 2).id
+LONG = ExifType(4, "long", 4).id
+RATIONAL = ExifType(5, "rational", 8).id
+UNDEFINED = ExifType(7, "undefined", 1).id
+SLONG = ExifType(9, "slong", 4).id
+SRATIONAL = ExifType(10, "srational", 8).id
+
+# exif_types = {
+#     1: ("byte", 1),
+#     2: ("ascii", 1), 
+#     3: ("short", 2),
+#     4: ("long", 4),
+#     5: ("rational", 8),
+#     7: ("undefined", 1),
+#     9: ("slong", 4),
+#     10: ("srational", 8)
+#     }
+# make_syms(exif_types)
 
 def exif_type_size(exif_type):
     """Return the size of a type"""
-    return exif_types.get(exif_type)[1]
+    return ExifType.lookup.get(exif_type).size
 
 class Rational:
     def __init__(self, num, den):
@@ -390,7 +408,7 @@ class IfdData:
             self.entries.append(entry)
 
             debug("%-40s %-10s %6d %s" % (self.tags.get(tag, (hex(tag), 0))[0],
-                                          exif_types[exif_type],
+                                          ExifType.lookup[exif_type],
                                           components, actual_data))
         self.ifd_handler(data)
 
@@ -788,7 +806,8 @@ class ExifSegment(DefaultSegment):
             self.e = ">"
         else:
             raise JpegFile.InvalidFile("Bad TIFF endian header. Got <%s>, "
-                                       "expecting <II> or <MM>" % self.tiff_endian)
+                                       "expecting <II> or <MM>" % 
+                                       self.tiff_endian)
 
         tiff_tag, tiff_offset = unpack(self.e + 'HI', tiff_data[2:8])
 
@@ -919,10 +938,11 @@ class JpegFile:
         pass
     
     def __init__(self, input, filename=None, mode="rw"):
-        """JpegFile Constructor. input is a file object, and filename is a string
-        used to name the file. (filename is used only for display functions).
-        You shouldn't use this function directly, but rather call one of the
-        static methods fromFile, fromString or fromFd."""
+        """JpegFile Constructor. input is a file object, and filename
+        is a string used to name the file. (filename is used only for
+        display functions).  You shouldn't use this function directly,
+        but rather call one of the static methods fromFile, fromString
+        or fromFd."""
         self.filename = filename
         self.mode = mode
         # input is the file descriptor
@@ -984,8 +1004,8 @@ class JpegFile:
         output.write(EOI_MARKER)
 
     def dump(self, f = sys.stdout):
-        """Write out ASCII representation of the file on a given file object. Output
-        default to stdout."""
+        """Write out ASCII representation of the file on a given file
+        object. Output default to stdout."""
         print >> f, "<Dump of JPEG %s>" % self.filename
         for segment in self._segments:
             segment.dump(f)
@@ -1004,15 +1024,16 @@ class JpegFile:
             return None
 
     def add_exif(self):
-        """add_exif adds a new ExifSegment to a file, and returns it. When adding an
-        EXIF segment is will add it at the start of the list of segments."""
+        """add_exif adds a new ExifSegment to a file, and returns
+        it. When adding an EXIF segment is will add it at the start of
+        the list of segments."""
         new_segment = ExifSegment(APP1, None, None)
         self._segments.insert(0, new_segment)
         return new_segment
 
 
     def _get_exif(self):
-        """Get exif"""
+        """Exif Attribute property"""
         if self.mode == "rw":
             return self.get_exif(True)
         else:
@@ -1033,8 +1054,9 @@ class JpegFile:
             raise self.NoSection, "File %s doesn't have a GPS section." % \
                 self.filename
         (deg, min, sec) =  gps[GPSLatitude]
-        lat = (float(deg.num) / deg.den) + (1/60.0 * float(min.num) / min.den) + \
-              (1/3600.0 * float(sec.num) / sec.den)
+        lat = (float(deg.num) / deg.den) +  \
+            (1/60.0 * float(min.num) / min.den) + \
+            (1/3600.0 * float(sec.num) / sec.den)
         if gps[GPSLatitudeRef] == "S":
             lat = -lat
         
