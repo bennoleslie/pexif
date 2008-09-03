@@ -3,11 +3,6 @@ import pexif
 import StringIO
 import difflib
 
-try:
-    import decimal
-except:
-    decimal = None
-
 test_data = [
     ("test/data/rose.jpg", "test/data/rose.txt"),
     ("test/data/conker.jpg", "test/data/conker.txt"),
@@ -116,34 +111,44 @@ class TestExifFunctions(unittest.TestCase):
             attr = pexif.JpegFile.fromFile(test_file). \
                    get_exif(create=True). \
                    get_primary(create=True)
-            self.assertEqual(attr[pexif.ImageWidth], None)
+            self.assertEqual(attr["ImageWidth"], None)
+            def foo():
+                attr.ImageWidth
+            self.assertRaises(AttributeError, foo)
 
     def test_getattr_exist(self):
         attr = pexif.JpegFile.fromFile(DEFAULT_TESTFILE).get_exif().get_primary()
-        self.assertEqual(attr[pexif.Make], "Canon")
+        self.assertEqual(attr["Make"], "Canon")
+        self.assertEqual(attr.Make, "Canon")
 
     def test_setattr_nonexist(self):
         for test_file, _ in test_data:
             attr = pexif.JpegFile.fromFile(test_file). \
                    get_exif(create=True).get_primary(create=True)
-            attr[pexif.ImageWidth] = 3
-            self.assertEqual(attr[pexif.ImageWidth], 3)
+            attr["ImageWidth"] = 3
+            self.assertEqual(attr["ImageWidth"], 3)
 
     def test_setattr_exist(self):
         for test_file, _ in test_data:
             attr = pexif.JpegFile.fromFile(test_file). \
                    get_exif(create=True). \
                    get_primary(create=True)
-            attr[pexif.Make] = "CanonFoo"
-            self.assertEqual(attr[pexif.Make], "CanonFoo")
+            attr.Make = "CanonFoo"
+            self.assertEqual(attr.Make, "CanonFoo")
+            attr["Make"] = "CanonFoo"
+            self.assertEqual(attr["Make"], "CanonFoo")
         
     def test_setattr_exist_none(self):
         for test_file, _ in test_data:
             attr = pexif.JpegFile.fromFile(test_file). \
                    get_exif(create=True). \
                    get_primary(create=True)
-            attr[pexif.Make] = None
-            self.assertEqual(attr[pexif.Make], None)
+            attr["Make"] = None
+            self.assertEqual(attr["Make"], None)
+            attr.Make = "Foo"
+            self.assertEqual(attr["Make"], "Foo")
+            del attr.Make
+            self.assertEqual(attr["Make"], None)
 
     def test_add_geo(self):
         for test_file, _ in test_data:
@@ -155,12 +160,12 @@ class TestExifFunctions(unittest.TestCase):
                 pass
             attr = jf.get_exif(create=True).get_primary(create=True)
             gps = attr.new_gps()
-            gps[pexif.GPSLatitudeRef] = "S"
-            gps[pexif.GPSLongitudeRef] = "E"
+            gps["GPSLatitudeRef"] = "S"
+            gps["GPSLongitudeRef"] = "E"
             data = jf.writeString()
             jf2 = pexif.JpegFile.fromString(data)
-            self.assertEqual(jf2.get_exif().get_primary() \
-                             [pexif.GPSIFD][pexif.GPSLatitudeRef], "S")
+            self.assertEqual(jf2.get_exif().get_primary().GPS \
+                             ["GPSLatitudeRef"], "S")
 
     def test_simple_add_geo(self):
         for test_file, _ in test_data:

@@ -51,3 +51,6 @@ Acknowledgments:
 
  Marcell Lengyel <miketkf@gmail.com> for adding better support for 
  Canon g3 and FujiFilm z5fd.
+
+ Andrew Baumann <http://ab.id.au/> for finding a bug in dealing with
+ extended IFD sections, and supplying the timezone adjustment script.

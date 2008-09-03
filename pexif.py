@@ -97,11 +97,6 @@ import StringIO
 import sys
 from struct import unpack, pack
 
-try:
-    import decimal
-except Import:
-    decimal = None
-
 MAX_HEADER_SIZE = 64 * 1024
 DELIM = 0xff
 EOI = 0xd9
@@ -109,17 +104,18 @@ SOI_MARKER = chr(DELIM) + '\xd8'
 EOI_MARKER = chr(DELIM) + '\xd9'
 
 EXIF_OFFSET = 0x8769
+GPSIFD = 0x8825
 
 TIFF_OFFSET = 6
 TIFF_TAG = 0x2a
 
 DEBUG = 0
 
-def debug(*str):
+def debug(*debug_string):
     """Used for print style debugging. Enable by setting the global
     DEBUG to 1."""
     if DEBUG:
-        for each in str:
+        for each in debug_string:
             print each,
         print
 
@@ -132,7 +128,7 @@ class DefaultSegment:
     extra information about a particular segment.
     """
     
-    def __init__(self, marker, fd, data):
+    def __init__(self, marker, fd, data, mode):
         """The constructor for DefaultSegment takes the marker which
         identifies the segments, a file object which is currently positioned
         at the end of the segment. This allows any subclasses to potentially
@@ -140,6 +136,9 @@ class DefaultSegment:
         segment."""
         self.marker = marker
         self.data = data
+        self.mode = mode
+        self.fd = fd
+        assert mode in ["rw", "ro"]
         if not self.data is None:
             self.parse_data(data)
 
@@ -182,8 +181,8 @@ class StartOfScanSegment(DefaultSegment):
     in the size as reported in the segment header. This instances of this class
     are created by JpegFile and it should not be subclassed.
     """
-    def __init__(self, marker, fd, data):
-        DefaultSegment.__init__(self, marker, fd, data)
+    def __init__(self, marker, fd, data, mode):
+        DefaultSegment.__init__(self, marker, fd, data, mode)
 
         # For SOS we also pull out the actual data
         img_data = fd.read()
@@ -192,44 +191,24 @@ class StartOfScanSegment(DefaultSegment):
         fd.seek(-2, 1)
 
     def write(self, fd):
+        """Write segment data to a given file object"""
         DefaultSegment.write(self, fd)
         fd.write(self.img_data)
 
     def dump(self, fd):
+        """Dump as ascii readable data to a given file object"""
         print >> fd, " Section: [  SOS] Size: %6d Image data size: %6d" % \
               (len(self.data), len(self.img_data))
 
-def make_syms(dict):
-    """A slightly evil function for generating constant symbols without needless
-    duplication. For example given a dictionary:
-    { 1 : ("foo", ...), 2 : ("bar", ...) }
-    This function will create two new globals FOO and BAR with values
-    1 and 2 respectively. This avoids a common pattern that was occurring of:
-    FOO = 1
-    BAR = 2
-    names = { FOO : ("foo", ..), BAR : ("bar",...) }
-
-    With two values the gain is not so obvious, but considering a set of 100 it is
-    quite useful.
-    
-    This function takes a dict whose values must be tuples with the first argument
-    containing a string. The string value is converted to uppercase and inserted
-    into the module global scope.
-    """
-    
-    for key, value in dict.items():
-        globals()[value[0].upper()] = key
-
-
-def make_syms2(dict):
-    for key, value in dict.items():
-        globals()[value[1]] = key
-
 class ExifType:
+    """The ExifType class encapsulates the data types used
+    in the Exif spec. These should really be called TIFF types
+    probably. This could be replaced by named tuples in python 2.6."""
     lookup = {}
 
-    def __init__(self, id, name, size):
-        self.id = id
+    def __init__(self, type_id, name, size):
+        """Create an ExifType with a given name, size and type_id"""
+        self.id = type_id
         self.name = name
         self.size = size
         ExifType.lookup[id] = self
@@ -243,31 +222,24 @@ UNDEFINED = ExifType(7, "undefined", 1).id
 SLONG = ExifType(9, "slong", 4).id
 SRATIONAL = ExifType(10, "srational", 8).id
 
-# exif_types = {
-#     1: ("byte", 1),
-#     2: ("ascii", 1), 
-#     3: ("short", 2),
-#     4: ("long", 4),
-#     5: ("rational", 8),
-#     7: ("undefined", 1),
-#     9: ("slong", 4),
-#     10: ("srational", 8)
-#     }
-# make_syms(exif_types)
-
 def exif_type_size(exif_type):
     """Return the size of a type"""
     return ExifType.lookup.get(exif_type).size
 
 class Rational:
+    """A simple fraction class. Python 2.6 could use the inbuilt Fraction class."""
+
     def __init__(self, num, den):
+        """Create a number fraction num/den."""
         self.num = num
         self.den = den
 
     def __repr__(self):
+        """Return a string representation of the fraction."""
         return "%s / %s" % (self.num, self.den)
 
     def as_tuple(self):
+        """Return the fraction a numerator, denominator tuple."""
         return (self.num, self.den)
 
 class IfdData:
@@ -278,12 +250,21 @@ class IfdData:
     embedded_tags = {}
 
     def special_handler(self, tag, data):
+        """special_handler method can be over-ridden by subclasses
+        to specially handle the conversion of tags from raw format
+        into Python data types."""
         pass
 
     def ifd_handler(self, data):
+        """ifd_handler method can be over-ridden by subclasses to
+        specially handle conversion of the Ifd as a whole into a
+        suitable python representation."""
         pass
 
     def extra_ifd_data(self, offset):
+        """extra_ifd_data method can be over-ridden by subclasses
+        to specially handle conversion of the Python Ifd representation
+        back into a byte stream."""
         return ""
 
 
@@ -296,15 +277,38 @@ class IfdData:
                 self[key] = value
         self.__dict__[name] = value
 
+    def __delattr__(self, name):
+        for key, entry in self.tags.items():
+            if entry[1] == name:
+                del self[key]
+        del self.__dict__[name]
+
     def __getattr__(self, name):
         for key, entry in self.tags.items():
             if entry[1] == name:
-                return self[key]
-        raise AttributeError
+                x = self[key]
+                if x is None:
+                    raise AttributeError
+                return x
+        for key, entry in self.embedded_tags.items():
+            if entry[0] == name:
+                if self.has_key(key):
+                    return self[key]
+                else:
+                    if self.mode == "rw":
+                        new = entry[1](self.e, 0, "rw", self.exif_file)
+                        self[key] = new
+                        return new
+                    else:
+                        raise AttributeError
+        raise AttributeError, "%s not found.. %s" % (name, self.embedded_tags)
 
     def __getitem__(self, key):
         if type(key) == type(""):
-            return self.__getattr__(key)
+            try:
+                return self.__getattr__(key)
+            except AttributeError:
+                return None
         for entry in self.entries:
             if key == entry[0]:
                 if entry[1] == ASCII and not entry[2] is None:
@@ -312,6 +316,16 @@ class IfdData:
                 else:
                     return entry[2]
         return None
+
+    def __delitem__(self, key):
+        if type(key) == type(""):
+            try:
+                return self.__delattr__(key)
+            except AttributeError:
+                return None
+        for entry in self.entries:
+            if key == entry[0]:
+                self.entries.remove(entry)
 
     def __setitem__(self, key, value):
         if type(key) == type(""):
@@ -338,8 +352,9 @@ class IfdData:
             self.entries.append((key, self.tags[key][2], value))
         return
 
-    def __init__(self, e, offset, exif_file, data = None):
+    def __init__(self, e, offset, exif_file, mode, data = None):
         self.exif_file = exif_file
+        self.mode = mode
         self.e = e
         self.entries = []
         if data is None:
@@ -362,8 +377,8 @@ class IfdData:
 
 
             if tag in self.embedded_tags:
-                actual_data = self.embedded_tags[tag](e, the_data,
-                                                      exif_file, data)
+                actual_data = self.embedded_tags[tag][1](e, the_data,
+                                                         exif_file, self.mode, data)
             else:
                 if byte_size > 4:
                     debug(" ...offset %s" % the_data)
@@ -430,7 +445,7 @@ class IfdData:
         for tag, exif_type, the_data in self.entries:
             magic_type = exif_type
             if (self.isifd(the_data)):
-                debug("-> Magic..");
+                debug("-> Magic..")
                 sub_data, next_offset = the_data.getdata(e, data_offset, 1)
                 the_data = [data_offset]
                 debug("<- Magic", next_offset, data_offset, len(sub_data),
@@ -561,11 +576,11 @@ class FujiIFD(IfdData):
         data, next_offset = IfdData.getdata(self, e, 12, last)
         return pre_data + data, next_offset + offset
 
-def IfdMakerNote(e, offset, exif_file, data):
+def ifd_maker_note(e, offset, exif_file, mode, data):
     """Factory function for creating MakeNote entries"""
     if exif_file.make == "Canon":
         # Canon maker note appears to always be in Little-Endian
-        return CanonIFD('<', offset, exif_file, data)
+        return CanonIFD('<', offset, exif_file, mode, data)
     elif exif_file.make == "FUJIFILM":
         # The FujiFILM maker note is special.
         # See http://www.ozhiker.com/electronics/pjmt/jpeg_info/fujifilm_mn.html
@@ -584,7 +599,7 @@ def IfdMakerNote(e, offset, exif_file, data):
         # and the data is referenced from the start the Ifd data, not the
         # TIFF file.
         ifd_data = data[offset:]
-        return FujiIFD(e, ifd_offset, exif_file, ifd_data)
+        return FujiIFD(e, ifd_offset, exif_file, mode, ifd_data)
     else:
         raise JpegFile.InvalidFile("Unknown maker: %s. Can't "\
                                    "currently handle this." % exif_file.make)
@@ -601,7 +616,10 @@ class IfdGPS(IfdData):
         0x6: ("Altitude", "GPSAltitude", RATIONAL, 1)
         }
 
-make_syms2(IfdGPS.tags)
+    def __init__(self, e, offset, exif_file, mode, data = None):
+        IfdData.__init__(self, e, offset, exif_file, mode, data)
+        if data is None:
+            self.GPSVersionID = ['\x02', '\x02', '\x00', '\x00']
 
 class IfdExtendedEXIF(IfdData):
     tags = {
@@ -670,11 +688,9 @@ class IfdExtendedEXIF(IfdData):
         0xa420: ("Unique image ID", "ImageUniqueID"),
         }
     embedded_tags = {
-        0x927c: IfdMakerNote,
+        0x927c: ("MakerNote", ifd_maker_note),
         }
     name = "Extended EXIF"
-
-make_syms2(IfdExtendedEXIF.tags)
 
 class IfdTIFF(IfdData):
     """
@@ -722,26 +738,24 @@ class IfdTIFF(IfdData):
     }
     
     embedded_tags = {
-        0xA005: IfdInterop,
-        EXIF_OFFSET: IfdExtendedEXIF,
-        0x8825: IfdGPS,
+        0xA005: ("Interoperability", IfdInterop), 
+        EXIF_OFFSET: ("ExtendedEXIF", IfdExtendedEXIF),
+        0x8825: ("GPS", IfdGPS),
         }
 
     name = "TIFF Ifd"
 
     def special_handler(self, tag, data):
-        if tag == Make:
+        if self.tags[tag][1] == "Make":
             self.exif_file.make = data.strip('\0')
 
     def new_gps(self):
         if self.has_key(GPSIFD):
             raise ValueError, "Already have a GPS Ifd" 
-        gps = IfdGPS(self.e, 0, self.exif_file)
-        gps[GPSVersionID] = ['\x02', '\x02', '\x00', '\x00']
+        assert self.mode == "rw"
+        gps = IfdGPS(self.e, 0, self.mode, self.exif_file)
         self[GPSIFD] = gps
         return gps
-
-make_syms2(IfdTIFF.tags)
 
 class IfdThumbnail(IfdTIFF):
     name = "Thumbnail"
@@ -780,11 +794,11 @@ class ExifSegment(DefaultSegment):
     a get_attributes returns an AttributeIfd instances which allows you to
     manipulate the attributes in a Jpeg file."""
 
-    def __init__(self, marker, fd, data):
+    def __init__(self, marker, fd, data, mode):
         self.ifds = []
         self.e = '<'
         self.tiff_endian = 'II'
-        DefaultSegment.__init__(self, marker, fd, data)
+        DefaultSegment.__init__(self, marker, fd, data, mode)
     
     def parse_data(self, data):
         """Overloads the DefaultSegment method to parse the data of
@@ -828,9 +842,9 @@ class ExifSegment(DefaultSegment):
             num_entries = unpack(self.e + 'H', tiff_data[offset:offset+2])[0]
             start = 2 + offset + (num_entries*12)
             if (count == 1):
-                ifd = IfdTIFF(self.e, offset, self, tiff_data)
+                ifd = IfdTIFF(self.e, offset, self, self.mode, tiff_data)
             elif (count == 2):
-                ifd = IfdThumbnail(self.e, offset, self, tiff_data)
+                ifd = IfdThumbnail(self.e, offset, self, self.mode, tiff_data)
             else:
                 raise JpegFile.InvalidFile()
             self.ifds.append(ifd)
@@ -869,11 +883,23 @@ class ExifSegment(DefaultSegment):
             return self.ifds[0]
         else:
             if create:
-                new_ifd = IfdTIFF(self.e, None, self)
+                assert self.mode == "rw"
+                new_ifd = IfdTIFF(self.e, None, self, "rw")
                 self.ifds.insert(0, new_ifd)
                 return new_ifd
             else:
                 return None
+
+    def _get_property(self):
+        if self.mode == "rw":
+            return self.get_primary(True)
+        else:
+            primary = self.get_primary()
+            if primary is None:
+                raise AttributeError
+            return primary
+
+    primary = property(_get_property)
 
 jpeg_markers = {
     0xc0: ("SOF0", []),
@@ -904,8 +930,7 @@ jpeg_markers = {
     0xfe: ("COM", []),
     }
 
-make_syms(jpeg_markers)
-
+APP1 = 0xe1
 
 class JpegFile:
     """JpegFile object. You should create this using one of the static methods
@@ -975,7 +1000,7 @@ class JpegFile:
                 try:
                     # Note: Segment class may modify the input file 
                     # descriptor. This is expected.
-                    attempt = segment_class(mark, input, data)
+                    attempt = segment_class(mark, input, data, self.mode)
                     segments.append(attempt)
                     break
                 except DefaultSegment.InvalidSegment:
@@ -1027,7 +1052,8 @@ class JpegFile:
         """add_exif adds a new ExifSegment to a file, and returns
         it. When adding an EXIF segment is will add it at the start of
         the list of segments."""
-        new_segment = ExifSegment(APP1, None, None)
+        assert self.mode == "rw"
+        new_segment = ExifSegment(APP1, None, None, "rw")
         self._segments.insert(0, new_segment)
         return new_segment
 
@@ -1046,25 +1072,21 @@ class JpegFile:
 
     def get_geo(self):
         """Return a tuple of (latitude, longitude)."""
-        if (self.get_exif() is None or self.get_exif().get_primary() is None):
-            gps = None
-        else:
-            gps = self.get_exif().get_primary()[GPSIFD]
-        if gps is None:
+        def convert(x):
+            (deg, min, sec) = x
+            return (float(deg.num) / deg.den) +  \
+                (1/60.0 * float(min.num) / min.den) + \
+                (1/3600.0 * float(sec.num) / sec.den)
+        if not self.exif.primary.has_key(GPSIFD):
             raise self.NoSection, "File %s doesn't have a GPS section." % \
                 self.filename
-        (deg, min, sec) =  gps[GPSLatitude]
-        lat = (float(deg.num) / deg.den) +  \
-            (1/60.0 * float(min.num) / min.den) + \
-            (1/3600.0 * float(sec.num) / sec.den)
-        if gps[GPSLatitudeRef] == "S":
+            
+        gps = self.exif.primary.GPS
+        lat = convert(gps.GPSLatitude)
+        lng = convert(gps.GPSLongitude)
+        if gps.GPSLatitudeRef == "S":
             lat = -lat
-        
-        (deg, min, sec) =  gps[GPSLongitude]
-        lng = (float(deg.num) / deg.den) + (1/60.0 *  \
-                                            float(min.num) / min.den) + \
-              (1/3600.0 * float(sec.num) / sec.den)
-        if gps[GPSLongitudeRef] == "W":
+        if gps.GPSLongitudeRef == "W":
             lng = -lng
 
         return lat, lng
@@ -1088,25 +1110,25 @@ class JpegFile:
         
     def set_geo(self, lat, lng):
         """Set the GeoLocation to a given lat and lng"""
-        attr = self.get_exif(create=True).get_primary(create=True)
-        gps = attr[GPSIFD]
-        if gps is None:
-            gps = attr.new_gps()
+        if self.mode != "rw":
+            raise RWError
+
+        gps = self.exif.primary.GPS
 
         sign, deg, min, sec = JpegFile._parse(lat)
         ref = "N"
         if sign < 0:
             ref = "S"
 
-        gps[GPSLatitudeRef] = ref
-        gps[GPSLatitude] = [Rational(deg, 1), Rational(min, 1),
+        gps.GPSLatitudeRef = ref
+        gps.GPSLatitude = [Rational(deg, 1), Rational(min, 1),
                             Rational(sec, JpegFile.SEC_DEN)]
-        
+
         sign, deg, min, sec = JpegFile._parse(lng)
         ref = "E"
         if sign < 0:
             ref = "W"
-        gps[GPSLongitudeRef] = ref
-        gps[GPSLongitude] = [Rational(deg, 1), Rational(min, 1),
+        gps.GPSLongitudeRef = ref
+        gps.GPSLongitude = [Rational(deg, 1), Rational(min, 1),
                              Rational(sec, JpegFile.SEC_DEN)]
 
