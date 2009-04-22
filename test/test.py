@@ -12,20 +12,6 @@ test_data = [
 DEFAULT_TESTFILE = test_data[0][0]
 NONEXIST_TESTFILE = "test/data/noexif.jpg"
 
-class TestMakeSyms(unittest.TestCase):
-    set = {1 : ("one", 1), 2 : ("two", 2), 3 : ("three", 3), 4 : ("four", 4) }
-
-    def setUp(self):
-        pexif.make_syms(self.set)
-
-    def test_basic(self):
-        for num in [pexif.ONE, pexif.TWO, pexif.THREE, pexif.FOUR]:
-            self.assertEqual(self.set[num][1], num)
-        
-    def tearDown(self):
-        # Ideally remove symbols ... but can't think of a good way to do it
-        pass
-
 class TestLoadFunctions(unittest.TestCase):
     def test_fromFile(self):
         # Simple test ensures we can load and parse a file from filename
@@ -66,7 +52,7 @@ class TestLoadFunctions(unittest.TestCase):
     def test_dump(self):
         # Test that the dumped data is as expected.
         for test_file, expected_file in test_data:
-            expected = open(expected_file).read()
+            expected = open(expected_file, 'rb').read()
             jpeg = pexif.JpegFile.fromFile(test_file)
             out = StringIO.StringIO()
             jpeg.dump(out)

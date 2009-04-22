@@ -211,7 +211,7 @@ class ExifType:
         self.id = type_id
         self.name = name
         self.size = size
-        ExifType.lookup[id] = self
+        ExifType.lookup[type_id] = self
 
 BYTE = ExifType(1, "byte", 1).id
 ASCII = ExifType(2, "ascii", 1).id
