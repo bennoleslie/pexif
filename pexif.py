@@ -54,7 +54,7 @@ This is probably not sufficient to handle arbitrary files conforming
 to the JPEG specs, but it should handle files that conform to
 JFIF or EXIF, as well as files that conform to neither but
 have both JFIF and EXIF application segment (which is the majority
-of files in existence!). 
+of files in existence!).
 
 When writing out files all segment will be written out in the order
 in which they were read. Any 'unknown' segment will be written out
@@ -71,20 +71,20 @@ an AttributeError.
 Read Write mode: trying to access missing elements will automatically
 create them.
 
-E.g: 
+E.g:
 
 img.exif.primary.<tagname>
              .geo
              .interop
              .exif.<tagname>
              .exif.makernote.<tagname>
-               
+
         .thumbnail
 img.flashpix.<...>
 img.jfif.<tagname>
 img.xmp
 
-E.g: 
+E.g:
 
 try:
  print img.exif.tiff.exif.FocalLength
@@ -111,6 +111,14 @@ TIFF_TAG = 0x2a
 
 DEBUG = 0
 
+# By default, if we find a makernote with an unknown format, we
+# simply skip over it. In some cases, it makes sense to raise a
+# real error.
+#
+# Set to `unknown_make_note_as_error` to True, if errors should
+# be raised.
+unknown_maker_note_as_error = False
+
 def debug(*debug_string):
     """Used for print style debugging. Enable by setting the global
     DEBUG to 1."""
@@ -127,7 +135,7 @@ class DefaultSegment:
     structure of the segment. Other classes subclass this to provide
     extra information about a particular segment.
     """
-    
+
     def __init__(self, marker, fd, data, mode):
         """The constructor for DefaultSegment takes the marker which
         identifies the segments, a file object which is currently positioned
@@ -244,7 +252,7 @@ class Rational:
 
 class IfdData:
     """Base class for IFD"""
-    
+
     name = "Generic Ifd"
     tags = {}
     embedded_tags = {}
@@ -363,7 +371,7 @@ class IfdData:
         next = unpack(e + "I", data[offset+2+12*num_entries:
                                     offset+2+12*num_entries+4])[0]
         debug("OFFSET %s - %s" % (offset, next))
-        
+
         for i in range(num_entries):
             start = (i * 12) + 2 + offset
             debug("START: ", start)
@@ -377,8 +385,13 @@ class IfdData:
 
 
             if tag in self.embedded_tags:
-                actual_data = self.embedded_tags[tag][1](e, the_data,
-                                                         exif_file, self.mode, data)
+                try:
+                    actual_data = self.embedded_tags[tag][1](e,
+                           the_data, exif_file, self.mode, data)
+                except JpegFile.SkipTag as exc:
+                    # If the tag couldn't be parsed, and raised 'SkipTag'
+                    # then we just continue.
+                    continue
             else:
                 if byte_size > 4:
                     debug(" ...offset %s" % the_data)
@@ -391,11 +404,11 @@ class IfdData:
                 elif exif_type == ASCII:
                     if the_data[-1] != '\0':
                         actual_data = the_data + '\0'
-                        #raise JpegFile.InvalidFile("ASCII tag '%s' not 
-                        # NULL-terminated: %s [%s]" % (self.tags.get(tag, 
+                        #raise JpegFile.InvalidFile("ASCII tag '%s' not
+                        # NULL-terminated: %s [%s]" % (self.tags.get(tag,
                         # (hex(tag), 0))[0], the_data, map(ord, the_data)))
-                        #print "ASCII tag '%s' not NULL-terminated: 
-                        # %s [%s]" % (self.tags.get(tag, (hex(tag), 0))[0], 
+                        #print "ASCII tag '%s' not NULL-terminated:
+                        # %s [%s]" % (self.tags.get(tag, (hex(tag), 0))[0],
                         # the_data, map(ord, the_data))
                     actual_data = the_data
                 elif exif_type == SHORT:
@@ -464,11 +477,11 @@ class IfdData:
             else:
                 magic_components = components = len(the_data)
                 byte_size = exif_type_size(exif_type) * components
-            
+
             if exif_type == BYTE or exif_type == UNDEFINED:
                 actual_data = "".join(the_data)
             elif exif_type == ASCII:
-                actual_data = the_data 
+                actual_data = the_data
             elif exif_type == SHORT:
                 actual_data = pack(e + ("H" * components), *the_data)
             elif exif_type == LONG:
@@ -485,7 +498,7 @@ class IfdData:
                 raise "Can't handle this", exif_type
             if (byte_size) > 4:
                 output_data += actual_data
-                actual_data = pack(e + "I", data_offset) 
+                actual_data = pack(e + "I", data_offset)
                 data_offset += byte_size
             else:
                 actual_data = actual_data + '\0' * (4 - len(actual_data))
@@ -601,8 +614,14 @@ def ifd_maker_note(e, offset, exif_file, mode, data):
         ifd_data = data[offset:]
         return FujiIFD(e, ifd_offset, exif_file, mode, ifd_data)
     else:
-        raise JpegFile.InvalidFile("Unknown maker: %s. Can't "\
-                                   "currently handle this." % exif_file.make)
+        if unknown_maker_note_as_error:
+            msg = "Unknown maker: %s. Can't currently handle this." % \
+                  exif_file.make
+            exc = JpegFile.InvalidFile
+        else:
+            msg = "Unknown maker: %s. Skipping." % exif_file.make
+            exc = JpegFile.SkipTag
+        raise exc(msg)
 
 class IfdGPS(IfdData):
     name = "GPS"
@@ -648,7 +667,7 @@ class IfdExtendedEXIF(IfdData):
         # G. Tags relating to Picture taking conditions
         0x829a: ("Exposure Time", "ExposureTime"),
         0x829d: ("F Number", "FNumber"),
-        0x8822: ("Exposure Program", "ExposureProgram"),    
+        0x8822: ("Exposure Program", "ExposureProgram"),
         0x8824: ("Spectral Sensitivity", "SpectralSensitivity"),
         0x8827: ("ISO Speed Rating", "ISOSpeedRatings"),
         0x8829: ("Optoelectric conversion factor", "OECF"),
@@ -683,7 +702,7 @@ class IfdExtendedEXIF(IfdData):
         0xa407: ("Gain control", "GainControl"),
         0xa40a: ("Sharpness", "Sharpness"),
         0xa40c: ("Subject distance range", "SubjectDistanceRange"),
-        
+
         # H. Other tags
         0xa420: ("Unique image ID", "ImageUniqueID"),
         }
@@ -698,7 +717,7 @@ class IfdTIFF(IfdData):
 
     tags = {
         # Private Tags
-        0x8769: ("Exif IFD Pointer", "ExifOffset", LONG), 
+        0x8769: ("Exif IFD Pointer", "ExifOffset", LONG),
         0xA005: ("Interoparability IFD Pointer", "InteroparabilityIFD", LONG),
         0x8825: ("GPS Info IFD Pointer", "GPSIFD", LONG),
         # TIFF stuff used by EXIF
@@ -736,9 +755,9 @@ class IfdTIFF(IfdData):
         0x13B: ("Artist", "Artist", ASCII),
         0x8298: ("Copyright holder", "Copyright", ASCII),
     }
-    
+
     embedded_tags = {
-        0xA005: ("Interoperability", IfdInterop), 
+        0xA005: ("Interoperability", IfdInterop),
         EXIF_OFFSET: ("ExtendedEXIF", IfdExtendedEXIF),
         0x8825: ("GPS", IfdGPS),
         }
@@ -751,7 +770,7 @@ class IfdTIFF(IfdData):
 
     def new_gps(self):
         if self.has_key(GPSIFD):
-            raise ValueError, "Already have a GPS Ifd" 
+            raise ValueError, "Already have a GPS Ifd"
         assert self.mode == "rw"
         gps = IfdGPS(self.e, 0, self.mode, self.exif_file)
         self[GPSIFD] = gps
@@ -799,7 +818,7 @@ class ExifSegment(DefaultSegment):
         self.e = '<'
         self.tiff_endian = 'II'
         DefaultSegment.__init__(self, marker, fd, data, mode)
-    
+
     def parse_data(self, data):
         """Overloads the DefaultSegment method to parse the data of
         this segment. Can raise InvalidFile if we don't get what we expect."""
@@ -812,7 +831,7 @@ class ExifSegment(DefaultSegment):
 
         tiff_data = data[TIFF_OFFSET:]
         data = None # Don't need or want data for now on..
-        
+
         self.tiff_endian = tiff_data[:2]
         if self.tiff_endian == "II":
             self.e = "<"
@@ -820,7 +839,7 @@ class ExifSegment(DefaultSegment):
             self.e = ">"
         else:
             raise JpegFile.InvalidFile("Bad TIFF endian header. Got <%s>, "
-                                       "expecting <II> or <MM>" % 
+                                       "expecting <II> or <MM>" %
                                        self.tiff_endian)
 
         tiff_tag, tiff_offset = unpack(self.e + 'HI', tiff_data[2:8])
@@ -831,7 +850,7 @@ class ExifSegment(DefaultSegment):
 
         # Ok, the header parse out OK. Now we parse the IFDs contained in
         # the APP1 header.
-        
+
         # We use this loop, even though we can really only expect and support
         # two IFDs, the Attribute data and the Thumbnail data
         offset = tiff_offset
@@ -866,13 +885,13 @@ class ExifSegment(DefaultSegment):
             new_data, next_offset = ifd.getdata(self.e, next_offset,
                                                 ifd == self.ifds[-1])
             ifds_data += new_data
-            
+
         data = ""
         data += "Exif\0\0"
         data += self.tiff_endian
         data += pack(self.e + "HI", 42, 8)
         data += ifds_data
-        
+
         return data
 
     def get_primary(self, create=False):
@@ -909,7 +928,7 @@ jpeg_markers = {
     0xda: ("SOS", [StartOfScanSegment]),
     0xdb: ("DQT", []),
     0xdd: ("DRI", []),
-    
+
     0xe0: ("APP0", []),
     0xe1: ("APP1", [ExifSegment]),
     0xe2: ("APP2", []),
@@ -926,7 +945,7 @@ jpeg_markers = {
     0xed: ("APP13", []),
     0xee: ("APP14", []),
     0xef: ("APP15", []),
-    
+
     0xfe: ("COM", []),
     }
 
@@ -938,7 +957,7 @@ class JpegFile:
     modify the contents of the file. To write out the data use one of the methods
     writeFile, writeString or writeFd. To get an ASCII dump of the data in a file
     use the dump method."""
-    
+
     def fromFile(filename, mode="rw"):
         """Return a new JpegFile object from a given filename."""
         return JpegFile(open(filename, "rb"), filename=filename, mode=mode)
@@ -954,6 +973,10 @@ class JpegFile:
         return JpegFile(fd, "fd <%d>" % fd.fileno(), mode=mode)
     fromFd = staticmethod(fromFd)
 
+    class SkipTag(Exception):
+        """This exception is raised if a give tag should be skipped."""
+        pass
+
     class InvalidFile(Exception):
         """This exception is raised if a given file is not able to be parsed."""
         pass
@@ -961,7 +984,7 @@ class JpegFile:
     class NoSection(Exception):
         """This exception is raised if a section is unable to be found."""
         pass
-    
+
     def __init__(self, input, filename=None, mode="rw"):
         """JpegFile Constructor. input is a file object, and filename
         is a string used to name the file. (filename is used only for
@@ -998,7 +1021,7 @@ class JpegFile:
             # this data
             for segment_class in possible_segment_classes:
                 try:
-                    # Note: Segment class may modify the input file 
+                    # Note: Segment class may modify the input file
                     # descriptor. This is expected.
                     attempt = segment_class(mark, input, data, self.mode)
                     segments.append(attempt)
@@ -1080,7 +1103,7 @@ class JpegFile:
         if not self.exif.primary.has_key(GPSIFD):
             raise self.NoSection, "File %s doesn't have a GPS section." % \
                 self.filename
-            
+
         gps = self.exif.primary.GPS
         lat = convert(gps.GPSLatitude)
         lng = convert(gps.GPSLongitude)
@@ -1098,7 +1121,7 @@ class JpegFile:
         if val < 0:
             val  = -val
             sign = -1
-            
+
         deg = int(val)
         other = (val - deg) * 60
         minutes = int(other)
@@ -1107,7 +1130,7 @@ class JpegFile:
         return (sign, deg, minutes, secs)
 
     _parse = staticmethod(_parse)
-        
+
     def set_geo(self, lat, lng):
         """Set the GeoLocation to a given lat and lng"""
         if self.mode != "rw":
@@ -1131,4 +1154,3 @@ class JpegFile:
         gps.GPSLongitudeRef = ref
         gps.GPSLongitude = [Rational(deg, 1), Rational(min, 1),
                              Rational(sec, JpegFile.SEC_DEN)]
-
