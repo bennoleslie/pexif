@@ -191,12 +191,24 @@ class StartOfScanSegment(DefaultSegment):
     """
     def __init__(self, marker, fd, data, mode):
         DefaultSegment.__init__(self, marker, fd, data, mode)
-
         # For SOS we also pull out the actual data
         img_data = fd.read()
-        # -2 accounts for the EOI marker at the end of the file
-        self.img_data = img_data[:-2]
-        fd.seek(-2, 1)
+
+        # Usually the EOI marker will be at the end of the file,
+        # optimise for this case
+        if img_data[-2:] == EOI_MARKER:
+            remaining = 2
+        else:
+            # We need to search
+            for i in range(len(img_data) - 2):
+                if img_data[i:i + 2] == EOI_MARKER:
+                    break
+            else:
+                raise JpegFile.InvalidFile("Unable to find EOI marker.")
+            remaining = len(img_data) - i
+
+        self.img_data = img_data[:-remaining]
+        fd.seek(-remaining, 1)
 
     def write(self, fd):
         """Write segment data to a given file object"""
