@@ -1007,7 +1007,7 @@ class JpegFile:
             head = input.read(2)
             delim, mark  =  unpack(">BB", head)
             if (delim != DELIM):
-                raise self.InvalidFile("Error, expecting delmiter. "\
+                raise self.InvalidFile("Error, expecting delimiter. "\
                                        "Got <%s> should be <%s>" %
                                        (delim, DELIM))
             if mark == EOI:
