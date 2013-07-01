@@ -765,7 +765,7 @@ class IfdTIFF(IfdData):
     name = "TIFF Ifd"
 
     def special_handler(self, tag, data):
-        if self.tags[tag][1] == "Make":
+        if tag in self.tags and self.tags[tag][1] == "Make":
             self.exif_file.make = data.strip('\0')
 
     def new_gps(self):
