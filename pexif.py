@@ -972,7 +972,8 @@ class JpegFile:
 
     def fromFile(filename, mode="rw"):
         """Return a new JpegFile object from a given filename."""
-        return JpegFile(open(filename, "rb"), filename=filename, mode=mode)
+        with open(filename, "rb") as f:
+            return JpegFile(f, filename=filename, mode=mode)
     fromFile = staticmethod(fromFile)
 
     def fromString(str, mode="rw"):
