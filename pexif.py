@@ -760,6 +760,7 @@ class IfdTIFF(IfdData):
 
         # D. Other tags
         0x132: ("File change data and time", "DateTime", ASCII),
+        0x10d: ("Document name", "DocumentName", ASCII),
         0x10e: ("Image title", "ImageDescription", ASCII),
         0x10f: ("Camera Make", "Make", ASCII),
         0x110: ("Camera Model", "Model", ASCII),
