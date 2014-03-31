@@ -665,7 +665,7 @@ class IfdExtendedEXIF(IfdData):
         0x9102: ("Image compression mode", "CompressedBitsPerPixel"),
         0xA002: ("Valid image width", "PixelXDimension"),
         0xA003: ("Valid image height", "PixelYDimension"),
-        # D. Tags relatin to User informatio
+        # D. Tags relating to User information
         0x927c: ("Manufacturer notes", "MakerNote"),
         0x9286: ("User comments", "UserComment"),
         # E. Tag relating to related file information
