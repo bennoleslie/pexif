@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-version = "0.13"
+version = "0.14"
 
 """Setup script for pexif"""
 
@@ -27,5 +27,3 @@ setup (
                    "License :: OSI Approved :: Python Software Foundation License",
                    "Topic :: Multimedia :: Graphics"]
     )
-    
-    
