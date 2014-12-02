@@ -103,9 +103,6 @@ EOI = 0xd9
 SOI_MARKER = chr(DELIM) + '\xd8'
 EOI_MARKER = chr(DELIM) + '\xd9'
 
-EXIF_OFFSET = 0x8769
-GPSIFD = 0x8825
-
 TIFF_OFFSET = 6
 TIFF_TAG = 0x2a
 
@@ -777,7 +774,7 @@ class IfdTIFF(IfdData):
 
     embedded_tags = {
         0xA005: ("Interoperability", IfdInterop),
-        EXIF_OFFSET: ("ExtendedEXIF", IfdExtendedEXIF),
+        0x8769: ("ExtendedEXIF", IfdExtendedEXIF),
         0x8825: ("GPS", IfdGPS),
         }
 
@@ -788,7 +785,7 @@ class IfdTIFF(IfdData):
             self.exif_file.make = data.strip('\0')
 
     def new_gps(self):
-        if self.has_key(GPSIFD):
+        if hasattr(self, 'GPSIFD'):
             raise ValueError, "Already have a GPS Ifd"
         assert self.mode == "rw"
         gps = IfdGPS(self.e, 0, self.mode, self.exif_file)
@@ -1120,7 +1117,7 @@ class JpegFile:
             return (float(deg.num) / deg.den) +  \
                 (1/60.0 * float(min.num) / min.den) + \
                 (1/3600.0 * float(sec.num) / sec.den)
-        if not self.exif.primary.has_key(GPSIFD):
+        if not hasattr(self.exif.primary, 'GPSIFD'):
             raise self.NoSection, "File %s doesn't have a GPS section." % \
                 self.filename
 
