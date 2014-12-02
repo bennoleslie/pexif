@@ -1,4 +1,4 @@
-pexif is a Python library for  parsing and more importantly 
+pexif is a Python library for  parsing and more importantly
 editing EXIF data in JPEG files.
 
 This grew out of a need to add GPS tagged data to my images,
@@ -10,9 +10,9 @@ Apps:
  dump_exif.py: Output the EXIF file from a given file.
  setgps.py: Set the GPS metadata on a file.
  getgps.py: Get the GPS metadata from a file.
- noop.py: This is a no-op on a jpeg file. Useful for testing images are 
+ noop.py: This is a no-op on a jpeg file. Useful for testing images are
           preserved across operations using pexif. Note that the binary data
-          will not be exact as pexif will compress unused space in the file, 
+          will not be exact as pexif will compress unused space in the file,
           however running it on a file twice should end up with the same data.
 
 Examples:
@@ -20,14 +20,14 @@ Examples:
 
 Status:
  WARNING: This could destroy your images!! Backup your images before using.
- 
+
  Currently it parses files from my Canon without a problem, and is able
  to add a GPS tag without corrupting the rest of the image.
 
 References:
  This work couldn't be done with the reference for the spec. In
  particular I worked to:
-  http://www.exif.org/Exif2-2.PDF
+  http://www.exiv2.org/Exif2-2.PDF
 
  For the format of the Canon stuff I used:
    http://www.burren.cx/david/canon.html
@@ -39,7 +39,7 @@ Acknowledgments:
  Nick Carter <nick.carter@roke.co.uk> provided conker.jpg which is
  used for testing FUJIFILM exif data.
 
- Nick Burch <nick@gagravarr.org> provided noexif.jpg which is used 
+ Nick Burch <nick@gagravarr.org> provided noexif.jpg which is used
  for testing inputs that don't have an existing EXIF segment. Nick
  burch also found an error in GeoTags on the S60.
 
@@ -49,7 +49,7 @@ Acknowledgments:
  Roland Klabunde <roland.klabunde@freenet.de> who also found a bug in
  the GeoTag functionality.
 
- Marcell Lengyel <miketkf@gmail.com> for adding better support for 
+ Marcell Lengyel <miketkf@gmail.com> for adding better support for
  Canon g3 and FujiFilm z5fd.
 
  Andrew Baumann <http://ab.id.au/> for finding a bug in dealing with
