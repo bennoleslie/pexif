@@ -123,7 +123,7 @@ class TestExifFunctions(unittest.TestCase):
             self.assertEqual(attr.Make, "CanonFoo")
             attr["Make"] = "CanonFoo"
             self.assertEqual(attr["Make"], "CanonFoo")
-        
+
     def test_setattr_exist_none(self):
         for test_file, _ in test_data:
             attr = pexif.JpegFile.fromFile(test_file). \
@@ -200,7 +200,14 @@ class TestExifFunctions(unittest.TestCase):
         # exif doesn't exist
         jf = pexif.JpegFile.fromFile(NONEXIST_TESTFILE, mode="ro")
         self.assertRaises(AttributeError, test_get)
-        
+
+    def test_invalid_set(self):
+        """Test that setting an invalid tag raise an attribute error"""
+        jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE)
+        def test_set():
+            jf.exif.primary.UserComment = "foobar"
+        self.assertRaises(AttributeError, test_set)
+
 
 if __name__ == "__main__":
     unittest.main()

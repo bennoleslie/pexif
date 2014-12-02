@@ -262,7 +262,7 @@ class Rational:
         """Return the fraction a numerator, denominator tuple."""
         return (self.num, self.den)
 
-class IfdData:
+class IfdData(object):
     """Base class for IFD"""
 
     name = "Generic Ifd"
@@ -287,7 +287,6 @@ class IfdData:
         back into a byte stream."""
         return ""
 
-
     def has_key(self, key):
         return self[key] != None
 
@@ -295,13 +294,17 @@ class IfdData:
         for key, entry in self.tags.items():
             if entry[1] == name:
                 self[key] = value
-        self.__dict__[name] = value
+                break
+        else:
+            raise AttributeError("Invalid attribute '{}'".format(name))
 
     def __delattr__(self, name):
         for key, entry in self.tags.items():
             if entry[1] == name:
                 del self[key]
-        del self.__dict__[name]
+                break
+        else:
+            raise AttributeError("Invalid attribute '{}'".format(name))
 
     def __getattr__(self, name):
         for key, entry in self.tags.items():
@@ -373,10 +376,10 @@ class IfdData:
         return
 
     def __init__(self, e, offset, exif_file, mode, data = None):
-        self.exif_file = exif_file
-        self.mode = mode
-        self.e = e
-        self.entries = []
+        object.__setattr__(self, 'exif_file', exif_file)
+        object.__setattr__(self, 'mode', mode)
+        object.__setattr__(self, 'e', e)
+        object.__setattr__(self, 'entries', [])
         if data is None:
             return
         num_entries = unpack(e + 'H', data[offset:offset+2])[0]
@@ -789,7 +792,7 @@ class IfdTIFF(IfdData):
             raise ValueError, "Already have a GPS Ifd"
         assert self.mode == "rw"
         gps = IfdGPS(self.e, 0, self.mode, self.exif_file)
-        self[GPSIFD] = gps
+        self.GPSIFD = gps
         return gps
 
 class IfdThumbnail(IfdTIFF):
@@ -806,7 +809,7 @@ class IfdThumbnail(IfdTIFF):
         if size is None or offset is None:
             raise JpegFile.InvalidFile("Thumbnail doesn't have an offset "\
                                        "and/or size")
-        self.jpeg_data = data[offset:offset+size]
+        object.__setattr__(self, 'jpeg_data', data[offset:offset+size])
         if len(self.jpeg_data) != size:
             raise JpegFile.InvalidFile("Not enough data for JPEG thumbnail."\
                                        "Wanted: %d got %d" %
