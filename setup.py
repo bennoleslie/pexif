@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-version = "0.14"
+version = "0.15"
 
 """Setup script for pexif"""
 
