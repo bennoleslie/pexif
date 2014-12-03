@@ -291,9 +291,16 @@ class IfdData(object):
         for key, entry in self.tags.items():
             if entry[1] == name:
                 self[key] = value
-                break
-        else:
-            raise AttributeError("Invalid attribute '{}'".format(name))
+                return
+
+        for key, entry in self.embedded_tags.items():
+            if entry[0] == name:
+                if not isinstance(value, entry[1]):
+                    raise TypeError("Values assigned to '{}' must be instances of {}".format(entry[0], entry[1]))
+                self[key] = value
+                return
+
+        raise AttributeError("Invalid attribute '{}'".format(name))
 
     def __delattr__(self, name):
         for key, entry in self.tags.items():

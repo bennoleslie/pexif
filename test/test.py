@@ -208,6 +208,19 @@ class TestExifFunctions(unittest.TestCase):
             jf.exif.primary.UserComment = "foobar"
         self.assertRaises(AttributeError, test_set)
 
+    def test_invalid_set_embedded(self):
+        """Test that setting an embedded tag raises a type error"""
+        jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE)
+        def test_set():
+            jf.exif.primary.ExtendedEXIF = 5
+        self.assertRaises(TypeError, test_set)
+
+    def test_set_embedded(self):
+        """Test that setting an embedded tag raises a type error"""
+        jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE)
+        ext_exif = pexif.IfdExtendedEXIF(jf.exif.primary.e, 0, "rw", jf)
+        jf.exif.primary.ExtendedEXIF = ext_exif
+
 
 if __name__ == "__main__":
     unittest.main()
