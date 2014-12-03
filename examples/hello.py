@@ -21,5 +21,16 @@ img_dst = pexif.JpegFile.fromFile("test/data/noexif.jpg")
 primary_dst = img_dst.exif.primary
 primary_dst.Model = primary_src.Model
 primary_dst.Make = primary_src.Make
-
 img_dst.writeFile("hello3.jpg")
+
+# Copy entire exif from one to another (where there is no exif)
+img_src = pexif.JpegFile.fromFile("test/data/rose.jpg")
+img_dst = pexif.JpegFile.fromFile("test/data/noexif.jpg")
+img_dst.import_exif(img_src.exif)
+img_dst.writeFile("hello4.jpg")
+
+# Copy entire exif from one to another (where there is exif)
+img_src = pexif.JpegFile.fromFile("test/data/rose.jpg")
+img_dst = pexif.JpegFile.fromFile("test/data/conker.jpg")
+img_dst.import_exif(img_src.exif)
+img_dst.writeFile("hello5.jpg")

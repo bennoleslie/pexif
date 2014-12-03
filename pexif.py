@@ -1117,6 +1117,16 @@ class JpegFile:
         self._segments.insert(0, new_segment)
         return new_segment
 
+    def import_exif(self, new_exif):
+        """import_exif sets the files exif segment to new_exif. This will replace
+        existing EXIF segment if it exists."""
+        for idx, segment in enumerate(self._segments):
+            if isinstance(segment, ExifSegment):
+                self._segments[idx] = new_exif
+                break
+        else:
+            self._segments.insert(0, new_exif)
+
     def _get_exif(self):
         """Exif Attribute property"""
         if self.mode == "rw":
