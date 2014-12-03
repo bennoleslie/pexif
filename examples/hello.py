@@ -11,7 +11,8 @@ img.writeFile("hello1.jpg")
 
 # Add exif in a file
 img = pexif.JpegFile.fromFile("test/data/noexif.jpg")
-img.exif.primary.ImageDescription =  "Hello world!"
+img.exif.primary.ImageDescription = "Hello world!"
+img.exif.primary.ExtendedEXIF.UserComment = "a simple comment"
 img.writeFile("hello2.jpg")
 
 # Copy some exif field from one to another
