@@ -18,7 +18,7 @@ setup (
     license = "http://www.opensource.org/licenses/mit-license.php",
     py_modules = ["pexif"],
     scripts = ["scripts/dump_exif.py", "scripts/setgps.py", "scripts/getgps.py", "scripts/noop.py",
-               "scripts/timezone.py"],
+               "scripts/timezone.py", "scripts/remove_metadata.py"],
     platforms = ["any"],
     classifiers = ["Development Status :: 4 - Beta",
                    "Intended Audience :: Developers",
