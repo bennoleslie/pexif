@@ -35,8 +35,13 @@ img_dst = pexif.JpegFile.fromFile("test/data/conker.jpg")
 img_dst.import_exif(img_src.exif)
 img_dst.writeFile("hello5.jpg")
 
-
 # Remove metadata
 img_dst = pexif.JpegFile.fromFile("test/data/rose.jpg")
 img_dst.remove_metadata(paranoid=True)
 img_dst.writeFile("hello6.jpg")
+
+# Import metadata
+img_src = pexif.JpegFile.fromFile("test/data/conker.jpg")
+img_dst = pexif.JpegFile.fromFile("test/data/rose.jpg")
+img_dst.import_metadata(img_src)
+img_dst.writeFile("hello7.jpg")

@@ -1156,6 +1156,16 @@ class JpegFile:
             self._segments = [seg for seg in self._segments if
                               not (seg.code == 'COM' or seg.code.startswith('APP'))]
 
+    def import_metadata(self, other):
+        """import_metadata replaces all the meta-data segments in this file
+        with segments from another file.
+
+        Metadata segments are APPn and COM segments.
+        """
+        self.remove_metadata(paranoid=False)
+        new_seg = [seg for seg in other._segments if seg.code == 'COM' or seg.code.startswith('APP')]
+        self._segments = new_seg + self._segments
+
     def get_geo(self):
         """Return a tuple of (latitude, longitude)."""
         def convert(x):
