@@ -931,7 +931,7 @@ class ExifSegment(DefaultSegment):
 
     def get_primary(self, create=False):
         """Return the attributes image file descriptor. If it doesn't
-        exit return None, unless create is True in which case a new
+        exist return None, unless create is True in which case a new
         descriptor is created."""
         if len(self.ifds) > 0:
             return self.ifds[0]
