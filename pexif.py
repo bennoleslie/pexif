@@ -338,7 +338,7 @@ class IfdData(object):
         raise AttributeError("%s not found.. %s" % (name, self.embedded_tags))
 
     def __getitem__(self, key):
-        if type(key) == type(""):
+        if isinstance(key, str):
             try:
                 return self.__getattr__(key)
             except AttributeError:
@@ -352,7 +352,7 @@ class IfdData(object):
         return None
 
     def __delitem__(self, key):
-        if type(key) == type(""):
+        if isinstance(key, str):
             try:
                 return self.__delattr__(key)
             except AttributeError:
@@ -362,7 +362,7 @@ class IfdData(object):
                 self.entries.remove(entry)
 
     def __setitem__(self, key, value):
-        if type(key) == type(""):
+        if isinstance(key, str):
             return self.__setattr__(key, value)
         found = 0
         if len(self.tags[key]) < 3:
@@ -1101,7 +1101,7 @@ class JpegFile:
         false, then return None. If create is true, a new exif segment is
         added to the file and returned."""
         for segment in self._segments:
-            if segment.__class__ == ExifSegment:
+            if isinstance(segment, ExifSegment):
                 return segment
         if create:
             return self.add_exif()
