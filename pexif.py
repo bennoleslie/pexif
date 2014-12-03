@@ -444,10 +444,7 @@ class IfdData(object):
                 elif exif_type == SLONG:
                     actual_data = list(unpack(e + ("i" * components), the_data))
                 elif exif_type == RATIONAL or exif_type == SRATIONAL:
-                    if exif_type == RATIONAL:
-                        t = "II"
-                    else:
-                        t = "ii"
+                    t = 'II' if exif_type == RATIONAL else 'ii'
                     actual_data = []
                     for i in range(components):
                         actual_data.append(Rational(*unpack(e + t,
@@ -517,10 +514,7 @@ class IfdData(object):
             elif exif_type == SLONG:
                 actual_data = pack(e + ("i" * components), *the_data)
             elif exif_type == RATIONAL or exif_type == SRATIONAL:
-                if exif_type == RATIONAL:
-                    t = "II"
-                else:
-                    t = "ii"
+                t = 'II' if exif_type == RATIONAL else 'ii'
                 actual_data = ""
                 for i in range(components):
                     actual_data += pack(e + t, *the_data[i].as_tuple())
