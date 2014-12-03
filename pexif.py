@@ -145,6 +145,7 @@ class DefaultSegment:
         self.data = data
         self.mode = mode
         self.fd = fd
+        self.code = jpeg_markers.get(self.marker, ('Unknown-{}'.format(self.marker), None))[0]
         assert mode in ["rw", "ro"]
         if self.data is not None:
             self.parse_data(data)
@@ -1138,6 +1139,22 @@ class JpegFile:
             return exif
 
     exif = property(_get_exif)
+
+    def remove_metadata(self, paranoid=True):
+        """Remove all metadata segments from the image.
+
+        When paranoid is false, the segments APPn and COM will be removed.
+
+        When paranoid is true, all segments, except SOF0, SOF2, DHT, SOS, DQT, or DRI
+        will be removed.
+        """
+        paranoid_keep_list = ['SOF0', 'SOF2', 'DHT', 'SOS', 'DQT', 'DRI']
+        if paranoid:
+            self._segments = [seg for seg in self._segments if
+                              seg.code in paranoid_keep_list]
+        else:
+            self._segments = [seg for seg in self._segments if
+                              not (seg.code == 'COM' or seg.code.startswith('APP'))]
 
     def get_geo(self):
         """Return a tuple of (latitude, longitude)."""
