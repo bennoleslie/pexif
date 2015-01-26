@@ -221,6 +221,16 @@ class TestExifFunctions(unittest.TestCase):
         ext_exif = pexif.IfdExtendedEXIF(jf.exif.primary.e, 0, "rw", jf)
         jf.exif.primary.ExtendedEXIF = ext_exif
 
+    def test_set_xy_dimensions(self):
+        """Test setting PixelXDimension and PixelYDimension."""
+        jf = pexif.JpegFile.fromFile(DEFAULT_TESTFILE)
+        jf.exif.primary.ExtendedEXIF.PixelXDimension = [1600]
+        jf.exif.primary.ExtendedEXIF.PixelYDimension = [1200]
+        new = jf.writeString()
+        nf = pexif.JpegFile.fromString(new)
+        self.assertEqual(nf.exif.primary.ExtendedEXIF.PixelXDimension, [1600])
+        self.assertEqual(nf.exif.primary.ExtendedEXIF.PixelYDimension, [1200])
+
 
 if __name__ == "__main__":
     unittest.main()
