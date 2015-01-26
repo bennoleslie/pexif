@@ -682,8 +682,8 @@ class IfdExtendedEXIF(IfdData):
         # C. Tags relating to Image Configuration
         0x9101: ("Meaning of each component", "ComponentConfiguration", UNDEFINED, 4),
         0x9102: ("Image compression mode", "CompressedBitsPerPixel", RATIONAL, 1),
-        0xA002: ("Valid image width", "PixelXDimension"),
-        0xA003: ("Valid image height", "PixelYDimension"),
+        0xA002: ("Valid image width", "PixelXDimension", LONG, 1),  # NOTE: This is specified as SHORT or LONG
+        0xA003: ("Valid image height", "PixelYDimension", LONG, 1),  # NOTE: This is specified as SHORT or LONG
         # D. Tags relating to User information
         0x927c: ("Manufacturer notes", "MakerNote", UNDEFINED),
         0x9286: ("User comments", "UserComment", UNDEFINED),
