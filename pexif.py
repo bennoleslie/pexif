@@ -367,7 +367,8 @@ class IfdData(object):
             return self.__setattr__(key, value)
         found = 0
         if len(self.tags[key]) < 3:
-            raise "Error: Tags aren't set up correctly, should have tag type."
+            msg = "Error: Tags aren't set up correctly. Tag: {:x}:{} should have tag type."
+            raise Exception(msg.format(key, self.tags[key]))
         if self.tags[key][2] == ASCII:
             if value is not None and not value.endswith('\0'):
                 value = value + '\0'
