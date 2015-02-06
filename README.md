@@ -1,6 +1,6 @@
 # Python EXIF parsing
 
-pexif is a Python library for  parsing and more importantly
+**pexif** is a Python library for  parsing and more importantly
 editing EXIF data in JPEG files.
 
 This grew out of a need to add GPS tagged data to my images,
@@ -10,16 +10,16 @@ reusable software grand!
 
 ## Apps
 
-* dump_exif.py: Output the EXIF file from a given file.
-* setgps.py: Set the GPS metadata on a file.
-* getgps.py: Get the GPS metadata from a file.
-* noop.py: This is a no-op on a jpeg file. Useful for testing images are preserved across 
+- **dump_exif.py**: Output the EXIF file from a given file.
+- **setgps.py**: Set the GPS metadata on a file.
+- **getgps.py**: Get the GPS metadata from a file.
+- **noop.py**: This is a no-op on a jpeg file. Useful for testing images are preserved across 
 operations using pexif. Note that the binary data will not be exact as pexif will compress 
 unused space in the file, however running it on a file twice should end up with the same data.
 
 ## Examples
 
-hello.py: Add a simple description to a photo.
+- **hello.py**: Add a simple description to a photo.
 
 ## Status:
 
@@ -32,15 +32,15 @@ add a GPS tag without corrupting the rest of the image.
 
 This work couldn't be done with the reference for the spec. In particular I worked to:
 
-* http://www.exiv2.org/Exif2-2.PDF
+- http://www.exiv2.org/Exif2-2.PDF
 
 For the format of the Canon stuff I used:
 
-* http://www.burren.cx/david/canon.html
+- http://www.burren.cx/david/canon.html
 
 For the format of FujiFILM make note:
 
-* http://www.ozhiker.com/electronics/pjmt/jpeg_info/fujifilm_mn.html
+- http://www.ozhiker.com/electronics/pjmt/jpeg_info/fujifilm_mn.html
 
 ## Acknowledgments:
  
@@ -53,7 +53,7 @@ also found an error in GeoTags on the S60.
 [Christopher Jones](short.jones.cipher@gmail.com) who inspired updating
 my examples to show how copying EXIF data from one jpeg to another.
 
-[Roland Klabunde])roland.klabunde@freenet.de) who also found a bug in
+[Roland Klabunde](roland.klabunde@freenet.de) who also found a bug in
  the GeoTag functionality.
 
 [Marcell Lengyel](miketkf@gmail.com) for adding better support for
