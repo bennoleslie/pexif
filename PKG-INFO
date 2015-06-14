@@ -13,5 +13,5 @@ Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
-Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: License :: OSI Approved :: MIT License
 Classifier: Topic :: Multimedia :: Graphics
