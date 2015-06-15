@@ -23,6 +23,6 @@ setup (
                    "Intended Audience :: Developers",
                    "Operating System :: OS Independent",
                    "Programming Language :: Python",
-                   "License :: OSI Approved :: Python Software Foundation License",
+                   "License :: OSI Approved :: MIT License",
                    "Topic :: Multimedia :: Graphics"]
     )
